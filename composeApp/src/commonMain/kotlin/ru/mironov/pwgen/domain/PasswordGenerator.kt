@@ -1,14 +1,6 @@
 package ru.mironov.pwgen.domain
 
-import kotlin.random.Random
+interface PasswordGenerator {
 
-class PasswordGenerator constructor(
-    private val seed: Long,
-) {
-
-    private val random = Random(seed)
-
-    fun generatePassword(length: Int): String {
-        TODO("Secure password generation")
-    }
+    suspend fun generatePassword(length: Int): String
 }
