@@ -46,11 +46,16 @@ kotlin {
             implementation(libs.voyager.navigator)
             implementation(libs.voyager.screenmodel)
             implementation(libs.voyager.koin)
+            implementation(libs.voyager.lifecycle.kmp)
+            implementation(libs.orbit.core)
+            implementation(libs.orbit.compose)
+            implementation(libs.orbit.viewmodel)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.koin.test)
             implementation(libs.kotlinx.test.coroutines)
+            implementation(libs.orbit.test)
         }
     }
 }
