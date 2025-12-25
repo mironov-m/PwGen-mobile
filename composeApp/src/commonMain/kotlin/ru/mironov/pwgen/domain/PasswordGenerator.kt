@@ -1,6 +1,8 @@
 package ru.mironov.pwgen.domain
 
+import ru.mironov.pwgen.domain.models.PasswordGenerationSettings
+
 interface PasswordGenerator {
 
-    suspend fun generatePassword(length: Int): String
+    suspend fun generatePassword(generationSettings: PasswordGenerationSettings): String
 }
