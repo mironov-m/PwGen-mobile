@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">PwGen</string>
+    <string name="length">Length</string>
+    <string name="include_special_characters">Include Special Characters</string>
+    <string name="include_digits">Include Numbers</string>
+    <string name="generate_action">Generate %1$d passwords</string>
+</resources>

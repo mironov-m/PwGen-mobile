@@ -37,6 +37,149 @@ The project follows Kotlin Multiplatform conventions with platform-specific and 
 3. Shared business logic lives in `commonMain/kotlin/ru/mironov/pwgen/domain`
 4. Platform-specific implementations use the expect/actual pattern via `Platform.kt` files
 
+### MVI Architecture with Orbit
+
+The app follows the MVI (Model-View-Intent) pattern using **Orbit MVI**:
+
+**ViewModel Structure:**
+```kotlin
+class MainViewModel(
+    private val passwordGenerator: PasswordGenerator,
+) : ContainerHost<MainState, MainEffect>, ViewModel() {
+
+    override val container = container<MainState, MainEffect>(MainState())
+
+    fun changePasswordLength(length: Int) = intent {
+        reduce {
+            val newSettings = state.passwordGenerationSettings.copy(length = length)
+            state.copy(passwordGenerationSettings = newSettings)
+        }
+    }
+}
+```
+
+**Key Files:**
+- `ui/screens/[screen]/presentation/[Screen]ViewModel.kt`: MVI container with intents
+- `ui/screens/[screen]/presentation/[Screen]State.kt`: Immutable presentation state
+- `ui/screens/[screen]/presentation/[Screen]Effect.kt`: Side effects (navigation, toasts, etc.)
+
+**State Flow:**
+1. User action triggers an intent method
+2. Intent uses `reduce { }` to transform state immutably
+3. Container automatically notifies observers
+4. UI recomposes with new state via `viewModel.collectAsState()`
+
+**Dependencies:**
+- `orbit-core`: Core MVI functionality
+- `orbit-compose`: Compose integration
+- `orbit-viewmodel`: ViewModel integration
+
+### Navigation with Voyager
+
+Navigation is handled by **Voyager**, a type-safe KMP navigation library.
+
+**Screen Definition:**
+```kotlin
+class MainScreen : Screen {
+    @Composable
+    override fun Content() {
+        ...
+    }
+}
+```
+
+**Navigation Setup:**
+- **Android**: `Navigator(MainScreen())` in `MainActivity.kt`
+- **iOS**: `Navigator(MainScreen())` in `MainViewController.kt` with `ProvideNavigatorLifecycleKMPSupport`
+
+**Screen Location**: `composeApp/src/commonMain/kotlin/ru/mironov/pwgen/ui/screens/`
+
+**Navigation Features:**
+- Type-safe screen navigation
+- Built-in lifecycle management
+- Stack-based navigation (LIFO)
+- Integration with Koin DI via `koinViewModel()`
+
+**Adding New Screens:**
+1. Create screen class implementing `Screen` interface
+2. Implement `Content()` composable
+3. Register ViewModel in `di/PresentationModule.kt`
+4. Navigate using `LocalNavigator.current.push(NewScreen())`
+
+### Dependency Injection with Koin
+
+The app uses **Koin** for dependency injection.
+
+**Module Structure:**
+- `di/AppModule.kt`: Domain layer dependencies (PasswordGenerator, etc.)
+- `di/PresentationModule.kt`: ViewModels registration
+- `di/KoinInitializer.kt`: Initialization logic
+
+**Example Registration:**
+```kotlin
+// Domain service (singleton)
+val appModule = module {
+    single<PasswordGenerator> { PasswordGeneratorSecureRandomImpl() }
+}
+
+// ViewModel
+val presentationModule = module {
+    viewModel { MainViewModel(get()) }
+}
+```
+
+**Initialization:**
+- Android: Initialized in androidMain/kotlin/ru/mironov/pwgen/PwGenApplication.kt
+- iOS: Initialized in `MainViewController.kt` via `koinInitializer`
+
+### Theme and Colors
+
+The app uses **Material 3** theming with custom color schemes.
+
+**Theme Files:**
+- `ui/theme/Colors.kt`: Light and dark color schemes
+- `ui/theme/AppTheme.kt`: MaterialTheme wrapper with automatic dark mode detection
+
+**Color Schemes:**
+- **Light Theme**
+- **Dark Theme**
+
+**Theme Application:**
+```kotlin
+AppTheme(darkTheme: Boolean = isSystemInDarkTheme()) {
+    // UI content
+}
+```
+
+**Automatic Dark Mode:**
+- Theme automatically follows system settings via `isSystemInDarkTheme()`
+- Can be overridden with explicit `darkTheme` parameter
+
+**Accessing Theme Colors:**
+```kotlin
+@Composable
+fun MyComponent() {
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val primaryColor = MaterialTheme.colorScheme.primary
+    // Use colors from MaterialTheme.colorScheme.*
+}
+```
+
+**Material 3 Color Roles:**
+- `primary`, `onPrimary`, `primaryContainer`, `onPrimaryContainer`
+- `secondary`, `onSecondary`, `secondaryContainer`, `onSecondaryContainer`
+- `tertiary`, `onTertiary`, `tertiaryContainer`, `onTertiaryContainer`
+- `background`, `onBackground`
+- `surface`, `onSurface`, `surfaceVariant`, `onSurfaceVariant`
+- `error`, `onError`, `errorContainer`, `onErrorContainer`
+- `outline`, `outlineVariant`
+- `inverseSurface`, `inverseOnSurface`, `inversePrimary`
+
+**Best Practices:**
+- Always use `MaterialTheme.colorScheme.*` instead of hardcoded colors
+- Use semantic color roles (e.g., `error` for error states, `primaryContainer` for less prominent buttons)
+- Ensure sufficient contrast ratios for accessibility
+
 ## Build Commands
 
 ### Android
