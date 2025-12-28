@@ -57,6 +57,9 @@ kotlin {
             implementation(libs.koin.test)
             implementation(libs.kotlinx.test.coroutines)
             implementation(libs.orbit.test)
+            implementation(libs.kotest.framework.engine)
+            implementation(libs.kotest.assertions.core)
+            implementation(libs.kotest.runner.junit5)
         }
     }
 }
@@ -85,6 +88,11 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
     }
 }
 

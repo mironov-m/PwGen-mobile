@@ -1,65 +1,62 @@
 package ru.mironov.pwgen.domain
 
-import kotlinx.coroutines.test.runTest
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldHaveLength
 import ru.mironov.pwgen.domain.models.PasswordGenerationSettings
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertTrue
 
-class PasswordGeneratorSecureRandomImplTest {
+class PasswordGeneratorSecureRandomImplTest : StringSpec({
 
-    private val generator = PasswordGeneratorSecureRandomImpl()
+    val generator = PasswordGeneratorSecureRandomImpl()
 
-    private val uppercaseLetters = ('A'..'Z').toSet()
-    private val lowercaseLetters = ('a'..'z').toSet()
-    private val digits = ('0'..'9').toSet()
-    private val specialCharacters = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~".toSet()
+    val uppercaseLetters = ('A'..'Z').toSet()
+    val lowercaseLetters = ('a'..'z').toSet()
+    val digits = ('0'..'9').toSet()
+    val specialCharacters = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~".toSet()
 
     // Length tests
-    @Test
-    fun generatePassword_withDefaultSettings_returnsPasswordWithCorrectLength() = runTest {
+    "generates password with correct length for default settings" {
         val settings = PasswordGenerationSettings(length = 12)
         val password = generator.generatePassword(settings)
-        assertEquals(12, password.length, "Password length should match the requested length")
+
+        password shouldHaveLength 12
     }
 
-    @Test
-    fun generatePassword_withLengthOne_returnsSingleCharacter() = runTest {
+    "generates single character password when length is one" {
         val settings = PasswordGenerationSettings(length = 1)
         val password = generator.generatePassword(settings)
-        assertEquals(1, password.length, "Password should have exactly 1 character")
+
+        password shouldHaveLength 1
     }
 
-    @Test
-    fun generatePassword_withLargeLength_handlesCorrectly() = runTest {
+    "handles large password length correctly" {
         val settings = PasswordGenerationSettings(length = 1000)
         val password = generator.generatePassword(settings)
-        assertEquals(1000, password.length, "Should handle large password length")
+
+        password shouldHaveLength 1000
     }
 
     // Validation tests
-    @Test
-    fun generatePassword_withNegativeLength_throwsException() = runTest {
+    "throws exception when length is negative" {
         val settings = PasswordGenerationSettings(length = -1)
-        assertFailsWith<IllegalArgumentException> {
+
+        shouldThrow<IllegalArgumentException> {
             generator.generatePassword(settings)
         }
     }
 
-    @Test
-    fun generatePassword_withZeroLength_throwsException() = runTest {
+    "throws exception when length is zero" {
         val settings = PasswordGenerationSettings(length = 0)
-        assertFailsWith<IllegalArgumentException> {
+
+        shouldThrow<IllegalArgumentException> {
             generator.generatePassword(settings)
         }
     }
 
     // Character set tests - only letters (default)
-    @Test
-    fun generatePassword_withDefaultSettings_containsOnlyLetters() = runTest {
+    "contains only letters with default settings" {
         val settings = PasswordGenerationSettings(
             length = 100,
             digitsIncluded = false,
@@ -67,107 +64,73 @@ class PasswordGeneratorSecureRandomImplTest {
         )
         val password = generator.generatePassword(settings)
 
-        password.forEach { char ->
-            assertTrue(
-                char in uppercaseLetters || char in lowercaseLetters,
-                "Character '$char' should be a letter when digits and special chars are disabled"
-            )
-        }
+        password.all { it in uppercaseLetters || it in lowercaseLetters } shouldBe true
     }
 
     // Tests with digits enabled
-    @Test
-    fun generatePassword_withDigitsEnabled_containsOnlyLettersAndDigits() = runTest {
+    "contains only letters and digits when digits enabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             digitsIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        password.forEach { char ->
-            assertTrue(
-                char in uppercaseLetters || char in lowercaseLetters || char in digits,
-                "Character '$char' should be a letter or digit"
-            )
-        }
+        password.all { it in uppercaseLetters || it in lowercaseLetters || it in digits } shouldBe true
     }
 
-    @Test
-    fun generatePassword_withDigitsEnabled_eventuallyContainsDigit() = runTest {
+    "eventually contains digit when digits enabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             digitsIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        assertTrue(
-            password.any { it in digits },
-            "Password should contain at least one digit with high probability for length 100"
-        )
+        password.any { it in digits } shouldBe true
     }
 
-    @Test
-    fun generatePassword_withDigitsEnabled_doesNotContainSpecialCharacters() = runTest {
+    "does not contain special characters when digits enabled but special chars disabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             digitsIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        assertFalse(
-            password.any { it in specialCharacters },
-            "Password should not contain special characters when specialCharactersIncluded is false"
-        )
+        password.any { it in specialCharacters } shouldBe false
     }
 
     // Tests with special characters enabled
-    @Test
-    fun generatePassword_withSpecialCharsEnabled_containsOnlyLettersAndSpecialChars() = runTest {
+    "contains only letters and special chars when special chars enabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             specialCharactersIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        password.forEach { char ->
-            assertTrue(
-                char in uppercaseLetters || char in lowercaseLetters || char in specialCharacters,
-                "Character '$char' should be a letter or special character"
-            )
-        }
+        password.all { it in uppercaseLetters || it in lowercaseLetters || it in specialCharacters } shouldBe true
     }
 
-    @Test
-    fun generatePassword_withSpecialCharsEnabled_eventuallyContainsSpecialChar() = runTest {
+    "eventually contains special char when special chars enabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             specialCharactersIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        assertTrue(
-            password.any { it in specialCharacters },
-            "Password should contain at least one special character with high probability for length 100"
-        )
+        password.any { it in specialCharacters } shouldBe true
     }
 
-    @Test
-    fun generatePassword_withSpecialCharsEnabled_doesNotContainDigits() = runTest {
+    "does not contain digits when special chars enabled but digits disabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             specialCharactersIncluded = true
         )
         val password = generator.generatePassword(settings)
 
-        assertFalse(
-            password.any { it in digits },
-            "Password should not contain digits when digitsIncluded is false"
-        )
+        password.any { it in digits } shouldBe false
     }
 
     // Tests with all character types enabled
-    @Test
-    fun generatePassword_withAllTypesEnabled_containsAllCharacterTypes() = runTest {
+    "contains all character types when all types enabled" {
         val settings = PasswordGenerationSettings(
             length = 100,
             digitsIncluded = true,
@@ -175,17 +138,13 @@ class PasswordGeneratorSecureRandomImplTest {
         )
         val password = generator.generatePassword(settings)
 
-        password.forEach { char ->
-            assertTrue(
-                char in uppercaseLetters || char in lowercaseLetters ||
-                char in digits || char in specialCharacters,
-                "Character '$char' should be from one of the enabled character sets"
-            )
-        }
+        password.all {
+            it in uppercaseLetters || it in lowercaseLetters ||
+            it in digits || it in specialCharacters
+        } shouldBe true
     }
 
-    @Test
-    fun generatePassword_withAllTypesEnabled_eventuallyContainsAllTypes() = runTest {
+    "eventually contains all types when all types enabled" {
         val settings = PasswordGenerationSettings(
             length = 200,
             digitsIncluded = true,
@@ -193,41 +152,20 @@ class PasswordGeneratorSecureRandomImplTest {
         )
         val password = generator.generatePassword(settings)
 
-        assertTrue(
-            password.any { it in uppercaseLetters },
-            "Password should contain uppercase letters"
-        )
-        assertTrue(
-            password.any { it in lowercaseLetters },
-            "Password should contain lowercase letters"
-        )
-        assertTrue(
-            password.any { it in digits },
-            "Password should contain digits with high probability for length 200"
-        )
-        assertTrue(
-            password.any { it in specialCharacters },
-            "Password should contain special characters with high probability for length 200"
-        )
+        password.any { it in uppercaseLetters } shouldBe true
+        password.any { it in lowercaseLetters } shouldBe true
+        password.any { it in digits } shouldBe true
+        password.any { it in specialCharacters } shouldBe true
     }
 
     // Randomness tests
-    @Test
-    fun generatePassword_multipleCallsProduceDifferentPasswords() = runTest {
+    "multiple calls produce different passwords" {
         val settings = PasswordGenerationSettings(length = 20)
         val password1 = generator.generatePassword(settings)
         val password2 = generator.generatePassword(settings)
         val password3 = generator.generatePassword(settings)
 
-        assertNotEquals(
-            password1,
-            password2,
-            "Multiple calls should generate different passwords (randomness check)"
-        )
-        assertNotEquals(
-            password2,
-            password3,
-            "Multiple calls should generate different passwords (randomness check)"
-        )
+        password1 shouldNotBe password2
+        password2 shouldNotBe password3
     }
-}
+})
