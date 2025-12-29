@@ -6,6 +6,7 @@ import kotlinx.coroutines.test.runTest
 import org.orbitmvi.orbit.test.test
 import ru.mironov.pwgen.domain.PasswordGenerator
 import ru.mironov.pwgen.domain.models.PasswordGenerationSettings
+import ru.mironov.pwgen.ui.screens.main.presentation.MainEffect
 import ru.mironov.pwgen.ui.screens.main.presentation.MainState
 import ru.mironov.pwgen.ui.screens.main.presentation.MainViewModel
 
@@ -170,6 +171,18 @@ class MainViewModelTest : FreeSpec({
                     }
 
                     passwordGenerator.callCount shouldBe 10
+                }
+            }
+        }
+    }
+
+    "copyPassword" - {
+        "should post CopyToClipboard side effect with provided password" {
+            runTest {
+                viewModel.test(this, MainState()) {
+                    containerHost.copyPassword("TestPassword123")
+
+                    expectSideEffect(MainEffect.CopyToClipboard("TestPassword123"))
                 }
             }
         }

@@ -29,12 +29,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cafe.adriel.voyager.core.screen.Screen
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.orbitmvi.orbit.compose.collectAsState
 import org.orbitmvi.orbit.compose.collectSideEffect
@@ -43,6 +47,7 @@ import pwgen.composeapp.generated.resources.generate_action
 import pwgen.composeapp.generated.resources.include_digits
 import pwgen.composeapp.generated.resources.include_special_characters
 import pwgen.composeapp.generated.resources.length
+import ru.mironov.pwgen.ui.ClipboardManager
 import ru.mironov.pwgen.ui.screens.main.presentation.MainEffect
 import ru.mironov.pwgen.ui.screens.main.presentation.MainState
 import ru.mironov.pwgen.ui.screens.main.presentation.MainViewModel
@@ -56,10 +61,14 @@ class MainScreen : Screen {
 
         val state by viewModel.collectAsState()
 
+        val clipboardManager: ClipboardManager = koinInject()
+
         AppTheme {
             MainContent(state, viewModel)
         }
-        viewModel.collectSideEffect(sideEffect = ::handleSideEffect)
+        viewModel.collectSideEffect { sideEffect ->
+            handleSideEffect(sideEffect, clipboardManager)
+        }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -117,7 +126,7 @@ class MainScreen : Screen {
                 items(state.passwords) { password ->
                     PasswordItem(
                         password = password,
-                        onCopyClick = { TODO("Click to clipboard") }
+                        onCopyClick = { viewModel.copyPassword(password) }
                     )
                 }
             }
@@ -230,5 +239,10 @@ class MainScreen : Screen {
         }
     }
 
-    private fun handleSideEffect(effect: MainEffect) = Unit
+    private fun handleSideEffect(
+        effect: MainEffect,
+        clipboardManager: ClipboardManager,
+    ) = when(effect) {
+        is MainEffect.CopyToClipboard -> clipboardManager.copyToClipboard(effect.text)
+    }
 }

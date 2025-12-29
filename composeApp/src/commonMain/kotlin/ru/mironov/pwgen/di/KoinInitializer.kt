@@ -14,6 +14,7 @@ fun initKoin(appDeclaration: KoinAppDeclaration = {}) {
         appDeclaration()
         modules(
             appModule,
+            platformModule,
             presentationModule,
         )
     }

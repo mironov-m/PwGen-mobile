@@ -48,4 +48,8 @@ class MainViewModel(
             state.copy(passwords = passwords)
         }
     }
+
+    fun copyPassword(password: String) = intent {
+        postSideEffect(MainEffect.CopyToClipboard(password))
+    }
 }
