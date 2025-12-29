@@ -6,7 +6,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 PwGen is a password generator mobile application built with Kotlin Multiplatform and Compose Multiplatform, targeting Android and iOS platforms.
 
+## Quick Reference for Claude Code
+
+**Primary Language**: Kotlin
+
+**UI Framework**: Compose Multiplatform
+
+**Target Platforms**: Android, iOS
+
 **Package**: `ru.mironov.pwgen`
+
+
+
+### Key Technologies
+
+- **Architecture**: MVI (Model-View-Intent) with Orbit MVI
+
+- **Navigation**: Voyager (type-safe KMP navigation)
+
+- **Dependency Injection**: Koin
+
+- **UI**: Material 3 with custom theming
+
+- **Testing**: Kotest (BDD-style) and org.orbit-mvi:orbit-test for ViewModel testing. **Test Location**: `composeApp/src/commonTest/kotlin/ru/mironov/pwgen/`. For detailed testing guidelines, examples, and best practices, see [composeApp/src/commonTest/CLAUDE.md](composeApp/src/commonTest/CLAUDE.md)
 
 ## Architecture
 
@@ -205,16 +227,6 @@ gradlew.bat :composeApp:assembleRelease  # Windows
 Open `iosApp/iosApp.xcodeproj` in Xcode and build from there, or use IDE run configurations.
 
 The iOS framework must be built before running the iOS app. The Gradle build automatically generates the `ComposeApp.framework`.
-
-### Testing
-
-Common tests are located in `composeApp/src/commonTest/kotlin/ru/mironov/pwgen/`
-
-Run tests:
-```bash
-./gradlew :composeApp:test             # All tests
-./gradlew :composeApp:testDebugUnitTest  # Android unit tests
-```
 
 ## Configuration
 
